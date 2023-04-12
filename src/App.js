@@ -18,14 +18,30 @@ function App() {
   };
 
   const sendMessage = () => {
-    const newMessage = { text: inputValue, isBot: false };
-    setMessages([...messages, newMessage]);
+    const userMessage = { text: inputValue, isBot: false };
+    const newMessage = { text: '...', isBot: true };
+    setMessages((prevMessages) => [...prevMessages, userMessage, newMessage]);
     setInputValue('');
-    setTimeout(() => {
-      const botMessage = { text: 'I\'m sorry, I don\'t understand.', isBot: true };
-      setMessages([...messages, botMessage]);
-    }, 1000);
+    fetch('https://example.com/chatbot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: inputValue })
+    })
+    .then((response) => response.json())
+    .then((data) => {
+      const botMessage = { text: data.message, isBot: true };
+      setMessages((prevMessages) => {
+        const updatedMessages = [...prevMessages];
+        const messageIndex = updatedMessages.findIndex((message) => message === newMessage);
+        updatedMessages[messageIndex] = botMessage;
+        return updatedMessages;
+      });
+    })
+    .catch((error) => console.error(error));
   };
+  
 
   return (
     <div className="App">
